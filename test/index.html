@@ -56,6 +56,9 @@
     <button class="primary" id="btnPlay">Testsong abspielen</button>
     <button id="btnPause">Pause</button>
     <button id="btnPlayDevicesFirst">Geräte abfragen + abspielen</button>
+    <button id="btnTransfer">Wiedergabe übertragen + abspielen</button>
+    <button id="btnPlayNoDevice">Abspielen ohne Geräte-ID</button>
+    <p><a href="spotify:" style="color:#4ade80">Spotify-App öffnen</a></p>
   </section>
 
   <section>
@@ -278,6 +281,26 @@ async function play() {
   } catch (e) { log('Abspielen: ' + e.message, 'bad'); }
 }
 
+// Alternative 1: erst Wiedergabe aufs Gerät übertragen, dann den Song starten
+async function transferAndPlay() {
+  if (!chosenDevice) { log('Kein Gerät gewählt – erst Geräte abfragen.', 'bad'); return; }
+  try {
+    const r = await api('PUT', '/me/player', { device_ids: [chosenDevice.id], play: false });
+    log(r.status < 300 ? `Übertragen: ${r.status} OK auf ${chosenDevice.name}` : 'Übertragen: ' + apiError(r), r.status < 300 ? 'ok' : 'bad');
+    if (r.status < 300) { await sleep(1000); await play(); }
+  } catch (e) { log('Übertragen: ' + e.message, 'bad'); }
+}
+
+// Alternative 2: ohne device_id – Spotify nimmt das gerade aktive Gerät
+async function playNoDevice() {
+  const id = $('trackId').value.trim();
+  if (!/^[A-Za-z0-9]{22}$/.test(id)) { log('Test-Track-ID ungültig.', 'bad'); return; }
+  try {
+    const r = await api('PUT', '/me/player/play', { uris: ['spotify:track:' + id] });
+    log(r.status < 300 ? `Abspielen ohne ID: ${r.status} OK` : 'Abspielen ohne ID: ' + apiError(r), r.status < 300 ? 'ok' : 'bad');
+  } catch (e) { log('Abspielen ohne ID: ' + e.message, 'bad'); }
+}
+
 async function pause() {
   try {
     const q = chosenDevice ? '?device_id=' + encodeURIComponent(chosenDevice.id) : '';
@@ -485,6 +508,8 @@ $('btnDevices').onclick = loadDevices;
 $('btnPlay').onclick = play;
 $('btnPause').onclick = pause;
 $('btnPlayDevicesFirst').onclick = async () => { const d = await loadDevices(); if (d.length) await play(); };
+$('btnTransfer').onclick = transferAndPlay;
+$('btnPlayNoDevice').onclick = playNoDevice;
 $('btnCam').onclick = startCam;
 $('btnCamStop').onclick = stopCam;
 $('btnYears').onclick = loadYears;
