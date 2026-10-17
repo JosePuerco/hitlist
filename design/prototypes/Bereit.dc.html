@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Hitlist – Bereit</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#121212}
+a{color:#e8e8e8}a:hover{color:#ffffff}
+.dot{width:10px;height:10px;border-radius:5px;position:relative}
+.dot::after{content:"";position:absolute;inset:0;border-radius:5px;background:inherit;animation:ping 1.6s ease-out infinite}
+@keyframes ping{0%{transform:scale(1);opacity:.8}100%{transform:scale(3);opacity:0}}
+.in{animation:pop .6s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes pop{0%{transform:scale(.9);opacity:0}100%{transform:none;opacity:1}}
+.press{transition:transform .15s cubic-bezier(.3,1.6,.5,1)}.press:active{transform:scale(.95)}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; padding: 56px 20px 32px; display: flex; flex-direction: column; gap: 20px; background: #121212; color: #ffffff; font-family: 'Figtree', system-ui, sans-serif">
+  <header style="display: flex; align-items: center; justify-content: space-between">
+    <span style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px">Hitlist</span>
+    <a href="Einstellungen.dc.html" aria-label="Einstellungen" class="press" style="width: 44px; height: 44px; border-radius: 22px; background: #242424; color: #e8e8e8; display: flex; align-items: center; justify-content: center">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"></path></svg>
+    </a>
+  </header>
+  <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 16px">
+    <h1 style="margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -1px">Bereit zum Spielen</h1>
+    <p style="margin: 0; font-size: 16px; color: #b3b3b3; line-height: 1.45">Hitlist spielt die Songs über die Spotify-App auf diesem Gerät ab.</p>
+    <div class="in" style="display: flex; flex-direction: column; background: #1e1e1e; border-radius: 20px; padding: 6px 16px; margin-top: 8px">
+      <div style="display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid #2a2a2a">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: #2a2a2a; display: flex; align-items: center; justify-content: center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"></rect><path d="M11 18.5h2"></path></svg>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 16px; font-weight: 700">iPhone von Jan</span>
+          <span style="font-size: 14px; color: #b3b3b3">Abspielgerät gefunden</span>
+        </div>
+        <span class="dot" style="background: {{accent}}"></span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 14px; padding: 14px 0">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: #2a2a2a; display: flex; align-items: center; justify-content: center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"></path></svg>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+          <span style="font-size: 16px; font-weight: 700">Angemeldet als Jan</span>
+          <span style="font-size: 14px; color: #b3b3b3">Spotify Premium</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <a href="Scanner.dc.html" class="press" style="height: 56px; border-radius: 28px; background: {{accent}}; color: #0b0b0b; text-decoration: none; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2"></path><path d="M8 12h8"></path></svg>
+    Erste Karte scannen
+  </a>
+  <a href="KeinGeraet.dc.html" style="min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #a0a0a0">Zustand „kein Gerät“ ansehen</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4ADE80","options":["#4ADE80","#38BDF8","#F59E0B","#F472B6"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return { accent: this.props.accent ?? '#4ADE80' }; }
+}
+</script>
+</body>
+</html>

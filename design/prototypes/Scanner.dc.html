@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Hitlist – Scanner</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000000}
+a{color:#e8e8e8}a:hover{color:#ffffff}
+button{font-family:inherit;cursor:pointer}
+.finder{position:relative;width:260px;height:260px;display:block}
+.c{position:absolute;width:44px;height:44px;border-style:solid;border-width:0}
+.line{position:absolute;left:16px;right:16px;height:2px;border-radius:1px;animation:scan 2s ease-in-out infinite;box-shadow:0 0 12px 2px currentColor}
+@keyframes scan{0%,100%{top:18px}50%{top:240px}}
+.breathe{animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+.press{transition:transform .15s cubic-bezier(.3,1.6,.5,1)}.press:active{transform:scale(.94)}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; padding: 56px 20px 32px; display: flex; flex-direction: column; gap: 20px; background: radial-gradient(circle at 50% 45%, #2a2a2a 0, #0c0c0c 70%); color: #ffffff; font-family: 'Figtree', system-ui, sans-serif">
+  <header style="display: flex; align-items: center; justify-content: space-between">
+    <a href="Bereit.dc.html" aria-label="Schließen" class="press" style="width: 44px; height: 44px; border-radius: 22px; background: rgba(36,36,36,.85); color: #ffffff; display: flex; align-items: center; justify-content: center">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </a>
+    <span style="font-size: 15px; font-weight: 700; background: rgba(36,36,36,.85); padding: 10px 14px; border-radius: 999px">Karte 13</span>
+    <button aria-label="{{torchLabel}}" onClick="{{torch}}" class="press" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: {{torchBg}}; color: {{torchFg}}; display: flex; align-items: center; justify-content: center">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2h8l-1 6H9L8 2z"></path><path d="M9 8v12a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1V8"></path><path d="M12 12v3"></path></svg>
+    </button>
+  </header>
+  <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px">
+    <a href="Main.dc.html" aria-label="Scan simulieren" class="finder breathe">
+      <span class="c" style="top: 0; left: 0; border-top-width: 4px; border-left-width: 4px; border-color: {{accent}}; border-top-left-radius: 20px"></span>
+      <span class="c" style="top: 0; right: 0; border-top-width: 4px; border-right-width: 4px; border-color: {{accent}}; border-top-right-radius: 20px"></span>
+      <span class="c" style="bottom: 0; left: 0; border-bottom-width: 4px; border-left-width: 4px; border-color: {{accent}}; border-bottom-left-radius: 20px"></span>
+      <span class="c" style="bottom: 0; right: 0; border-bottom-width: 4px; border-right-width: 4px; border-color: {{accent}}; border-bottom-right-radius: 20px"></span>
+      <span class="line" style="background: {{accent}}; color: {{accent}}"></span>
+    </a>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center">
+      <span style="font-size: 20px; font-weight: 700">Karte in den Rahmen halten</span>
+      <span style="font-size: 15px; color: #b3b3b3">Der Song startet sofort, ohne Infos.</span>
+    </div>
+  </div>
+  <a href="ScanUngueltig.dc.html" style="min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #a0a0a0">Ungültigen Code simulieren</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4ADE80","options":["#4ADE80","#38BDF8","#F59E0B","#F472B6"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { torch: false }; }
+  renderVals() {
+    const on = this.state.torch;
+    return {
+      accent: this.props.accent ?? '#4ADE80',
+      torchBg: on ? '#ffffff' : 'rgba(36,36,36,.85)',
+      torchFg: on ? '#0b0b0b' : '#ffffff',
+      torchLabel: on ? 'Taschenlampe aus' : 'Taschenlampe an',
+      torch: () => this.setState({ torch: !on })
+    };
+  }
+}
+</script>
+</body>
+</html>

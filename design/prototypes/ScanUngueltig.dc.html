@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Hitlist – Ungültiger Code</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#000000}
+a{color:#e8e8e8}a:hover{color:#ffffff}
+.finder{position:relative;width:260px;height:260px;animation:shake .5s cubic-bezier(.36,.07,.19,.97) both}
+@keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-8px)}40%,60%{transform:translateX(8px)}}
+.c{position:absolute;width:44px;height:44px;border-style:solid;border-width:0;border-color:#F87171}
+.sheet{animation:up .5s cubic-bezier(.2,1.2,.3,1) .15s both}
+@keyframes up{0%{transform:translateY(100%)}100%{transform:none}}
+.press{transition:transform .15s cubic-bezier(.3,1.6,.5,1)}.press:active{transform:scale(.95)}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; display: flex; flex-direction: column; background: radial-gradient(circle at 50% 35%, #2a2a2a 0, #0c0c0c 70%); color: #ffffff; font-family: 'Figtree', system-ui, sans-serif; overflow: hidden">
+  <div style="flex: 1; display: flex; align-items: center; justify-content: center; opacity: .55">
+    <div class="finder" aria-hidden="true">
+      <span class="c" style="top: 0; left: 0; border-top-width: 4px; border-left-width: 4px; border-top-left-radius: 20px"></span>
+      <span class="c" style="top: 0; right: 0; border-top-width: 4px; border-right-width: 4px; border-top-right-radius: 20px"></span>
+      <span class="c" style="bottom: 0; left: 0; border-bottom-width: 4px; border-left-width: 4px; border-bottom-left-radius: 20px"></span>
+      <span class="c" style="bottom: 0; right: 0; border-bottom-width: 4px; border-right-width: 4px; border-bottom-right-radius: 20px"></span>
+    </div>
+  </div>
+  <div class="sheet" style="background: #1e1e1e; border-radius: 28px 28px 0 0; padding: 12px 20px 32px; display: flex; flex-direction: column; gap: 16px">
+    <span style="align-self: center; width: 40px; height: 5px; border-radius: 3px; background: #444444"></span>
+    <div style="width: 52px; height: 52px; border-radius: 16px; background: #3a1e1e; display: flex; align-items: center; justify-content: center">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7.5v5.5M12 16.5v.01"></path></svg>
+    </div>
+    <h2 style="margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.5px">Das ist kein Song-Code</h2>
+    <p style="margin: 0; font-size: 16px; color: #b3b3b3; line-height: 1.45">Hitlist erkennt nur Spotify-Song-Links von deinen Karten. Playlists, Alben und andere QR-Codes funktionieren nicht.</p>
+    <a href="Scanner.dc.html" class="press" style="height: 56px; margin-top: 8px; border-radius: 28px; background: #ffffff; color: #0b0b0b; text-decoration: none; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center">Nochmal scannen</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

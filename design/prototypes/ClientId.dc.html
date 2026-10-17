@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Hitlist – Eigene Client ID</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#121212}
+a{color:#e8e8e8}a:hover{color:#ffffff}
+button{font-family:inherit;cursor:pointer}
+input{font-family:inherit}
+.seg{transition:background-color .35s ease}
+.step{animation:slide .45s cubic-bezier(.2,1.2,.3,1) both}
+@keyframes slide{0%{opacity:0;transform:translateX(24px)}100%{opacity:1;transform:none}}
+.press{transition:transform .15s cubic-bezier(.3,1.6,.5,1)}.press:active{transform:scale(.95)}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; padding: 56px 20px 32px; display: flex; flex-direction: column; gap: 20px; background: #121212; color: #ffffff; font-family: 'Figtree', system-ui, sans-serif">
+  <header style="display: flex; align-items: center; gap: 8px">
+    <a href="Einstellungen.dc.html" aria-label="Zurück zu den Einstellungen" class="press" style="width: 44px; height: 44px; border-radius: 22px; background: #242424; color: #ffffff; display: flex; align-items: center; justify-content: center">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+    </a>
+    <span style="font-size: 17px; font-weight: 700">Eigene Client ID</span>
+  </header>
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px" aria-hidden="true">
+    <span class="seg" style="height: 5px; border-radius: 3px; background: {{seg1}}"></span>
+    <span class="seg" style="height: 5px; border-radius: 3px; background: {{seg2}}"></span>
+    <span class="seg" style="height: 5px; border-radius: 3px; background: {{seg3}}"></span>
+    <span class="seg" style="height: 5px; border-radius: 3px; background: {{seg4}}"></span>
+  </div>
+  <span style="font-size: 14px; font-weight: 600; color: #a0a0a0">Schritt {{stepNo}} von 4</span>
+
+  <div style="flex: 1; display: flex; flex-direction: column">
+    <sc-if value="{{s1}}" hint-placeholder-val="{{ true }}">
+      <div class="step" style="display: flex; flex-direction: column; gap: 16px">
+        <h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -.8px">Spotify-Entwickler­bereich öffnen</h1>
+        <p style="margin: 0; font-size: 16px; color: #b3b3b3; line-height: 1.5">Melde dich dort mit deinem eigenen Spotify-Premium-Konto an. Das ist kostenlos und dauert etwa 5 Minuten.</p>
+        <a href="#" class="press" style="height: 52px; border-radius: 26px; background: #242424; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px">Spotify Dashboard öffnen
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"></path></svg>
+        </a>
+        <p style="margin: 0; font-size: 14px; color: #a0a0a0; line-height: 1.5">Warum das Ganze? Spotify erlaubt pro privater App nur 5 Konten. Mit einer eigenen Client ID hast du deinen eigenen Zugang.</p>
+      </div>
+    </sc-if>
+    <sc-if value="{{s2}}" hint-placeholder-val="{{ false }}">
+      <div class="step" style="display: flex; flex-direction: column; gap: 16px">
+        <h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -.8px">App anlegen</h1>
+        <ol style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; font-size: 16px; color: #d6d6d6; line-height: 1.45">
+          <li>„Create app“ antippen</li>
+          <li>Name und Beschreibung frei wählen, z. B. „Hitlist“</li>
+          <li>Bei „Redirect URI“ genau diese Adresse eintragen:</li>
+        </ol>
+        <div style="display: flex; align-items: center; gap: 8px; background: #1e1e1e; border-radius: 14px; padding: 6px 6px 6px 14px">
+          <code style="flex: 1; font-size: 14px; color: #ffffff">https://josepuerco.github.io/hitlist/</code>
+          <button onClick="{{copy}}" class="press" style="height: 44px; padding: 0 14px; border-radius: 10px; border: none; background: #2e2e2e; color: #ffffff; font-size: 14px; font-weight: 600">{{copyLabel}}</button>
+        </div>
+        <p style="margin: 0; font-size: 16px; color: #d6d6d6">Bei „Which API“: <strong>Web API</strong> ankreuzen, speichern.</p>
+      </div>
+    </sc-if>
+    <sc-if value="{{s3}}" hint-placeholder-val="{{ false }}">
+      <div class="step" style="display: flex; flex-direction: column; gap: 16px">
+        <h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -.8px">Client ID einfügen</h1>
+        <p style="margin: 0; font-size: 16px; color: #b3b3b3; line-height: 1.5">In deiner neuen App unter „Settings“ die Client ID kopieren und hier einfügen. Das „Client Secret“ brauchst du nicht.</p>
+        <label style="display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: #b3b3b3">
+          Client ID
+          <input placeholder="32 Zeichen, z. B. 8f3c…" autocapitalize="off" autocomplete="off" spellcheck="false" style="height: 52px; border-radius: 14px; border: 1px solid #333333; background: #1e1e1e; color: #ffffff; padding: 0 14px; font-size: 16px">
+        </label>
+      </div>
+    </sc-if>
+    <sc-if value="{{s4}}" hint-placeholder-val="{{ false }}">
+      <div class="step" style="display: flex; flex-direction: column; gap: 16px">
+        <h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -.8px">Konten freischalten</h1>
+        <p style="margin: 0; font-size: 16px; color: #b3b3b3; line-height: 1.5">Unter „User Management“ jedes Spotify-Konto eintragen, das deine Hitlist nutzen soll: Name und Spotify-E-Mail. Höchstens 5, dein eigenes zählt mit.</p>
+        <div style="display: flex; gap: 12px; background: #1e1e1e; border-radius: 14px; padding: 14px">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.01"></path></svg>
+          <span style="font-size: 14px; color: #d6d6d6; line-height: 1.45">Nach dem Speichern meldet Hitlist dich ab. Danach einmal neu mit Spotify anmelden.</span>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="display: flex; gap: 10px">
+    <sc-if value="{{canBack}}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{back}}" class="press" style="height: 56px; padding: 0 22px; border-radius: 28px; border: none; background: #242424; color: #ffffff; font-size: 16px; font-weight: 600">Zurück</button>
+    </sc-if>
+    <sc-if value="{{notLast}}" hint-placeholder-val="{{ true }}">
+      <button onClick="{{next}}" class="press" style="flex: 1; height: 56px; border-radius: 28px; border: none; background: #ffffff; color: #0b0b0b; font-size: 17px; font-weight: 700">Weiter</button>
+    </sc-if>
+    <sc-if value="{{last}}" hint-placeholder-val="{{ false }}">
+      <a href="Start.dc.html" class="press" style="flex: 1; height: 56px; border-radius: 28px; background: {{accent}}; color: #0b0b0b; text-decoration: none; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center">Speichern und neu anmelden</a>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4ADE80","options":["#4ADE80","#38BDF8","#F59E0B","#F472B6"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { step: 1, copied: false }; }
+  renderVals() {
+    const n = this.state.step, accent = this.props.accent ?? '#4ADE80';
+    const seg = i => (i <= n ? accent : '#2e2e2e');
+    return {
+      accent,
+      stepNo: n,
+      seg1: seg(1), seg2: seg(2), seg3: seg(3), seg4: seg(4),
+      s1: n === 1, s2: n === 2, s3: n === 3, s4: n === 4,
+      canBack: n > 1, notLast: n < 4, last: n === 4,
+      copyLabel: this.state.copied ? 'Kopiert' : 'Kopieren',
+      copy: () => this.setState({ copied: true }),
+      back: () => this.setState({ step: Math.max(1, n - 1) }),
+      next: () => this.setState({ step: Math.min(4, n + 1) })
+    };
+  }
+}
+</script>
+</body>
+</html>

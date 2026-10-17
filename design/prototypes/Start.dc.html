@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Hitlist – Erster Start</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#121212}
+a{color:#e8e8e8}a:hover{color:#ffffff}
+.eq{display:flex;align-items:flex-end;gap:7px;height:96px}
+.eq span{display:block;width:12px;border-radius:6px;height:22px;animation:bounce 1.1s ease-in-out infinite}
+.eq span:nth-child(2){animation-delay:-.2s}.eq span:nth-child(3){animation-delay:-.5s}.eq span:nth-child(4){animation-delay:-.1s}.eq span:nth-child(5){animation-delay:-.7s}
+@keyframes bounce{0%,100%{height:18px}50%{height:92px}}
+.in1{animation:rise .7s cubic-bezier(.2,1.2,.3,1) .1s both}.in2{animation:rise .7s ease .25s both}.in3{animation:rise .7s ease .4s both}
+@keyframes rise{0%{transform:translateY(18px);opacity:0}100%{transform:none;opacity:1}}
+.press{transition:transform .15s cubic-bezier(.3,1.6,.5,1)}.press:active{transform:scale(.95)}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; padding: 56px 20px 32px; display: flex; flex-direction: column; gap: 20px; background: #121212; color: #ffffff; font-family: 'Figtree', system-ui, sans-serif">
+  <span style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px">Hitlist</span>
+  <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 28px">
+    <div class="eq" aria-hidden="true">
+      <span style="background: {{accent}}"></span><span style="background: {{accent}}"></span><span style="background: {{accent}}"></span><span style="background: {{accent}}"></span><span style="background: {{accent}}"></span>
+    </div>
+    <h1 class="in1" style="margin: 0; font-size: 44px; font-weight: 800; letter-spacing: -1.5px; line-height: 1.05">Hören.<br>Raten.<br>Auflösen.</h1>
+    <p class="in2" style="margin: 0; font-size: 17px; line-height: 1.45; color: #b3b3b3">Scanne deine Karten. Hitlist spielt den Song über Spotify ab, ohne Titel, Interpret oder Cover zu zeigen.</p>
+    <div class="in3" style="display: flex; flex-direction: column; gap: 10px; background: #1e1e1e; border-radius: 16px; padding: 16px">
+      <span style="font-size: 13px; font-weight: 700; color: #b3b3b3; letter-spacing: .5px">DU BRAUCHST</span>
+      <div style="display: flex; align-items: center; gap: 10px; font-size: 15px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{accent}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>
+        Spotify Premium
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; font-size: 15px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{accent}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>
+        Die Spotify-App auf diesem iPhone
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; font-size: 15px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{{accent}}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"></path></svg>
+        Freischaltung durch Jan
+      </div>
+    </div>
+  </div>
+  <a href="Bereit.dc.html" class="press" style="height: 56px; border-radius: 28px; background: #ffffff; color: #0b0b0b; text-decoration: none; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center">Mit Spotify anmelden</a>
+  <a href="ClientId.dc.html" style="min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600">Eigene Client ID verwenden</a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#4ADE80","options":["#4ADE80","#38BDF8","#F59E0B","#F472B6"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return { accent: this.props.accent ?? '#4ADE80' }; }
+}
+</script>
+</body>
+</html>

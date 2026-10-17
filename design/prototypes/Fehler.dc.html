@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Hitlist – Fehlerzustände</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#121212}
+a{color:#e8e8e8}a:hover{color:#ffffff}
+button{font-family:inherit;cursor:pointer}
+.in{animation:in .45s cubic-bezier(.2,1.2,.3,1) both}
+@keyframes in{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:none}}
+.press{transition:transform .15s cubic-bezier(.3,1.6,.5,1)}.press:active{transform:scale(.95)}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; padding: 56px 20px 32px; display: flex; flex-direction: column; gap: 20px; background: #121212; color: #ffffff; font-family: 'Figtree', system-ui, sans-serif">
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <span style="font-size: 12px; font-weight: 700; color: #a0a0a0; letter-spacing: .5px">VORSCHAU (NUR IM PROTOTYP)</span>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; background: #1e1e1e; border-radius: 14px; padding: 4px">
+      <button onClick="{{showLogout}}" style="min-height: 44px; border-radius: 10px; border: none; background: {{bg1}}; color: #ffffff; font-size: 13px; font-weight: 600">Abgemeldet</button>
+      <button onClick="{{showOffline}}" style="min-height: 44px; border-radius: 10px; border: none; background: {{bg2}}; color: #ffffff; font-size: 13px; font-weight: 600">Offline</button>
+      <button onClick="{{showDenied}}" style="min-height: 44px; border-radius: 10px; border: none; background: {{bg3}}; color: #ffffff; font-size: 13px; font-weight: 600">Nicht frei</button>
+    </div>
+  </div>
+
+  <sc-if value="{{v1}}" hint-placeholder-val="{{ true }}">
+    <div class="in" style="flex: 1; display: flex; flex-direction: column; gap: 16px">
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 16px">
+        <div style="width: 72px; height: 72px; border-radius: 20px; background: #242424; display: flex; align-items: center; justify-content: center">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+        </div>
+        <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -1px">Bitte neu anmelden</h1>
+        <p style="margin: 0; font-size: 16px; color: #b3b3b3; line-height: 1.45">Deine Spotify-Anmeldung ist abgelaufen. Das passiert alle 6 Monate und ist normal.</p>
+      </div>
+      <a href="Bereit.dc.html" class="press" style="height: 56px; border-radius: 28px; background: #ffffff; color: #0b0b0b; text-decoration: none; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center">Mit Spotify anmelden</a>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{v2}}" hint-placeholder-val="{{ false }}">
+    <div class="in" style="flex: 1; display: flex; flex-direction: column; gap: 16px">
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 16px">
+        <div style="width: 72px; height: 72px; border-radius: 20px; background: #242424; display: flex; align-items: center; justify-content: center">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.5a15 15 0 0 1 20 0M5.5 12a10 10 0 0 1 13 0M9 15.5a5 5 0 0 1 6 0"></path><path d="M12 19.5v.01"></path><path d="M3 3l18 18"></path></svg>
+        </div>
+        <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -1px">Keine Verbindung</h1>
+        <p style="margin: 0; font-size: 16px; color: #b3b3b3; line-height: 1.45">Hitlist braucht Internet, um Songs über Spotify abzuspielen. Prüfe WLAN oder mobile Daten.</p>
+      </div>
+      <button class="press" style="height: 56px; border-radius: 28px; border: none; background: #ffffff; color: #0b0b0b; font-size: 17px; font-weight: 700">Erneut versuchen</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{v3}}" hint-placeholder-val="{{ false }}">
+    <div class="in" style="flex: 1; display: flex; flex-direction: column; gap: 12px">
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 16px">
+        <div style="width: 72px; height: 72px; border-radius: 20px; background: #2a2416; display: flex; align-items: center; justify-content: center">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="8" r="4"></circle><path d="M3 21c1.3-3.5 4-5.5 7-5.5 1.2 0 2.3.3 3.3.8"></path><path d="M16 16l5 5M21 16l-5 5"></path></svg>
+        </div>
+        <h1 style="margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -1px">Konto nicht freigeschaltet</h1>
+        <p style="margin: 0; font-size: 16px; color: #b3b3b3; line-height: 1.45">Dein Spotify-Konto ist für diese Hitlist noch nicht eingetragen. Bitte Jan, dich freizuschalten, oder richte eine eigene Client ID ein.</p>
+      </div>
+      <a href="ClientId.dc.html" class="press" style="height: 56px; border-radius: 28px; background: #ffffff; color: #0b0b0b; text-decoration: none; font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center">Eigene Client ID einrichten</a>
+      <button class="press" style="height: 56px; border-radius: 28px; border: none; background: #242424; color: #ffffff; font-size: 16px; font-weight: 600">Erneut versuchen</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { v: 1 }; }
+  renderVals() {
+    const v = this.state.v, on = '#3a3a3a', off = 'transparent';
+    return {
+      v1: v === 1, v2: v === 2, v3: v === 3,
+      bg1: v === 1 ? on : off, bg2: v === 2 ? on : off, bg3: v === 3 ? on : off,
+      showLogout: () => this.setState({ v: 1 }),
+      showOffline: () => this.setState({ v: 2 }),
+      showDenied: () => this.setState({ v: 3 })
+    };
+  }
+}
+</script>
+</body>
+</html>
