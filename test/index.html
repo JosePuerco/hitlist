@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="HL Test">
+  <link rel="manifest" href="manifest.webmanifest">
+  <title>Hitlist Machbarkeitstest</title>
+  <!-- Wegwerf-Seite für Phase 0. Bewusst ohne Design, ohne Build. -->
+  <style>
+    body { font: 16px/1.4 system-ui, sans-serif; margin: 0; padding: 16px; padding-top: max(16px, env(safe-area-inset-top)); background: #121212; color: #fff; }
+    section { border: 1px solid #333; border-radius: 10px; padding: 12px; margin-bottom: 16px; }
+    h1 { font-size: 20px; } h2 { font-size: 17px; margin: 0 0 8px; }
+    button { font: inherit; min-height: 44px; padding: 0 14px; margin: 4px 4px 4px 0; border-radius: 8px; border: 0; background: #2a2a2a; color: #fff; }
+    button.primary { background: #4ade80; color: #0b0b0b; font-weight: 600; }
+    input, textarea { font: inherit; width: 100%; box-sizing: border-box; padding: 8px; border-radius: 8px; border: 1px solid #333; background: #1e1e1e; color: #fff; }
+    textarea { min-height: 120px; }
+    .muted { color: #a0a0a0; font-size: 14px; }
+    .ok { color: #4ade80; } .bad { color: #f87171; }
+    pre { white-space: pre-wrap; word-break: break-word; background: #1e1e1e; padding: 8px; border-radius: 8px; font-size: 13px; max-height: 260px; overflow: auto; }
+    table { border-collapse: collapse; font-size: 13px; width: 100%; }
+    td, th { border: 1px solid #333; padding: 4px; text-align: left; vertical-align: top; }
+    td input { width: 4.5em; padding: 4px; }
+    .scroll { overflow-x: auto; }
+    video { width: 100%; max-height: 300px; background: #000; border-radius: 8px; }
+    label { display: block; margin: 8px 0 4px; }
+  </style>
+</head>
+<body>
+  <h1>Hitlist Machbarkeitstest</h1>
+
+  <section>
+    <h2>1. Anmelden</h2>
+    <label for="clientId">Client ID</label>
+    <input id="clientId" autocomplete="off" spellcheck="false">
+    <p class="muted">Redirect-Adresse dieser Seite: <code id="redirectUri"></code></p>
+    <button class="primary" id="btnLogin">Mit Spotify anmelden</button>
+    <button id="btnRefresh">Token erneuern</button>
+    <button id="btnLogout">Abmelden</button>
+    <p id="authStatus" class="muted"></p>
+  </section>
+
+  <section>
+    <h2>2. Geräte</h2>
+    <button class="primary" id="btnDevices">Geräte abfragen</button>
+    <div id="devices" class="muted">Noch nicht abgefragt.</div>
+  </section>
+
+  <section>
+    <h2>3. Abspielen</h2>
+    <label for="trackId">Test-Track-ID (Titel wird nicht angezeigt)</label>
+    <input id="trackId" autocomplete="off" spellcheck="false">
+    <p class="muted">Gewähltes Gerät: <span id="chosenDevice">keins</span></p>
+    <button class="primary" id="btnPlay">Testsong abspielen</button>
+    <button id="btnPause">Pause</button>
+    <button id="btnPlayDevicesFirst">Geräte abfragen + abspielen</button>
+  </section>
+
+  <section>
+    <h2>4. Kamera</h2>
+    <button class="primary" id="btnCam">Kamera starten</button>
+    <button id="btnCamStop">Kamera stoppen</button>
+    <p id="camStatus" class="muted"></p>
+    <video id="video" playsinline muted autoplay></video>
+  </section>
+
+  <section>
+    <h2>5. Jahre vergleichen</h2>
+    <label for="trackList">Track-IDs oder Spotify-Links, einer pro Zeile</label>
+    <textarea id="trackList" spellcheck="false"></textarea>
+    <button class="primary" id="btnYears">Jahre abfragen</button>
+    <button id="btnCopy">Als Tabelle kopieren</button>
+    <button id="btnClearCache">MusicBrainz-Cache leeren</button>
+    <p id="yearStatus" class="muted"></p>
+    <div class="scroll"><table id="yearTable"></table></div>
+    <p id="score"></p>
+  </section>
+
+  <section>
+    <h2>Protokoll</h2>
+    <button id="btnClearLog">Leeren</button>
+    <pre id="log"></pre>
+  </section>
+
+<script>
+'use strict';
+
+const DEFAULT_CLIENT_ID = '4523312ccd6a42bdb5b235b27f4ed993';
+const DEFAULT_TRACK_ID = '0ofHAoxe9vBkTCp2UQIavz';
+const SCOPES = 'user-read-playback-state user-modify-playback-state';
+const LS = { clientId: 'hlt-clientId', auth: 'hlt-auth', verifier: 'hlt-verifier', state: 'hlt-state',
+  trackId: 'hlt-trackId', list: 'hlt-list', correct: 'hlt-correct', mb: 'hlt-mb', cam: 'hlt-camCount' };
+
+const $ = (id) => document.getElementById(id);
+// Redirect-Adresse ohne "index.html", Query und Hash – muss exakt zum Dashboard passen
+const REDIRECT_URI = location.origin + location.pathname.replace(/index\.html$/, '');
+
+// ---------- Hilfen ----------
+function log(msg, cls) {
+  const t = new Date().toLocaleTimeString('de-DE');
+  const line = document.createElement('div');
+  line.textContent = `[${t}] ${msg}`;
+  if (cls) line.className = cls;
+  $('log').prepend(line);
+}
+function lsGet(key, fallback) {
+  try { const v = localStorage.getItem(key); return v === null ? fallback : JSON.parse(v); } catch { return fallback; }
+}
+function lsSet(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { log('localStorage nicht verfügbar: ' + e.message, 'bad'); }
+}
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// ---------- PKCE-Login ----------
+function randomString(len) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  const bytes = crypto.getRandomValues(new Uint8Array(len));
+  return Array.from(bytes, (b) => chars[b % chars.length]).join('');
+}
+async function sha256Base64Url(text) {
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return btoa(String.fromCharCode(...new Uint8Array(hash))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function clientId() { return $('clientId').value.trim(); }
+
+async function login() {
+  const id = clientId();
+  if (!/^[0-9a-f]{32}$/i.test(id)) { log('Client ID sieht falsch aus (32 Hex-Zeichen erwartet).', 'bad'); return; }
+  lsSet(LS.clientId, id);
+  const verifier = randomString(64);
+  const state = randomString(16);
+  lsSet(LS.verifier, verifier);
+  lsSet(LS.state, state);
+  const params = new URLSearchParams({
+    response_type: 'code', client_id: id, scope: SCOPES, redirect_uri: REDIRECT_URI, state,
+    code_challenge_method: 'S256', code_challenge: await sha256Base64Url(verifier),
+  });
+  location.href = 'https://accounts.spotify.com/authorize?' + params;
+}
+
+async function tokenRequest(body) {
+  const res = await fetch('https://accounts.spotify.com/api/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(`${res.status} ${data.error || ''} ${data.error_description || ''}`.trim());
+  const old = lsGet(LS.auth, {});
+  const auth = {
+    accessToken: data.access_token,
+    // Spotify schickt beim Erneuern nicht immer einen neuen Refresh Token
+    refreshToken: data.refresh_token || old.refreshToken,
+    expiresAt: Date.now() + data.expires_in * 1000,
+    clientId: body.client_id,
+    scope: data.scope,
+  };
+  lsSet(LS.auth, auth);
+  return auth;
+}
+
+async function handleRedirect() {
+  const q = new URLSearchParams(location.search);
+  if (!q.has('code') && !q.has('error')) return;
+  history.replaceState(null, '', REDIRECT_URI);
+  if (q.has('error')) { log('Login abgebrochen: ' + q.get('error'), 'bad'); return; }
+  if (q.get('state') !== lsGet(LS.state, null)) { log('Login: state passt nicht, abgebrochen.', 'bad'); return; }
+  try {
+    await tokenRequest({
+      grant_type: 'authorization_code', code: q.get('code'), redirect_uri: REDIRECT_URI,
+      client_id: lsGet(LS.clientId, DEFAULT_CLIENT_ID), code_verifier: lsGet(LS.verifier, ''),
+    });
+    log('Login erfolgreich.', 'ok');
+  } catch (e) {
+    log('Token-Tausch fehlgeschlagen: ' + e.message, 'bad');
+  } finally {
+    localStorage.removeItem(LS.verifier);
+    localStorage.removeItem(LS.state);
+  }
+}
+
+async function refresh() {
+  const auth = lsGet(LS.auth, null);
+  if (!auth?.refreshToken) { log('Kein Refresh Token – bitte anmelden.', 'bad'); return null; }
+  try {
+    const a = await tokenRequest({ grant_type: 'refresh_token', refresh_token: auth.refreshToken, client_id: auth.clientId });
+    log('Token erneuert.', 'ok');
+    showAuth();
+    return a;
+  } catch (e) {
+    log('Erneuern fehlgeschlagen: ' + e.message, 'bad');
+    return null;
+  }
+}
+
+function showAuth() {
+  const auth = lsGet(LS.auth, null);
+  if (!auth) { $('authStatus').textContent = 'Nicht angemeldet.'; return; }
+  const until = new Date(auth.expiresAt).toLocaleTimeString('de-DE');
+  $('authStatus').innerHTML = `<span class="ok">Angemeldet.</span> Access Token gültig bis ${until}. Scopes: ${escapeHtml(auth.scope)}`;
+}
+
+// Spotify-Aufruf mit automatischem Erneuern kurz vor Ablauf bzw. bei 401
+async function api(method, path, body) {
+  let auth = lsGet(LS.auth, null);
+  if (!auth) throw new Error('Nicht angemeldet');
+  if (Date.now() > auth.expiresAt - 60_000) auth = (await refresh()) || auth;
+  const doFetch = (token) => fetch('https://api.spotify.com/v1' + path, {
+    method,
+    headers: { Authorization: 'Bearer ' + token, ...(body ? { 'Content-Type': 'application/json' } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  let res = await doFetch(auth.accessToken);
+  if (res.status === 401) {
+    const a = await refresh();
+    if (a) res = await doFetch(a.accessToken);
+  }
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+  return { status: res.status, data };
+}
+function apiError(r) {
+  const e = r.data?.error;
+  return `${r.status}${e?.reason ? ' ' + e.reason : ''}${e?.message ? ' – ' + e.message : ''}`;
+}
+
+// ---------- Geräte und Abspielen ----------
+let chosenDevice = null;
+
+async function loadDevices() {
+  try {
+    const r = await api('GET', '/me/player/devices');
+    if (r.status !== 200) { log('Geräte: ' + apiError(r), 'bad'); return []; }
+    const devices = r.data.devices || [];
+    log(`Geräte: ${devices.length} gefunden (${devices.map((d) => d.name + (d.is_active ? ' [aktiv]' : '')).join(', ') || 'keins'})`, devices.length ? 'ok' : 'bad');
+    renderDevices(devices);
+    return devices;
+  } catch (e) { log('Geräte: ' + e.message, 'bad'); return []; }
+}
+
+function renderDevices(devices) {
+  const box = $('devices');
+  box.innerHTML = '';
+  if (!devices.length) { box.textContent = 'Keine Geräte sichtbar („Spotify schläft“).'; return; }
+  for (const d of devices) {
+    const btn = document.createElement('button');
+    btn.textContent = `${d.name} · ${d.type}${d.is_active ? ' · aktiv' : ''}${d.is_restricted ? ' · gesperrt' : ''}`;
+    btn.onclick = () => chooseDevice(d);
+    box.appendChild(btn);
+  }
+  // Vorauswahl: zuletzt gewähltes Gerät, sonst Smartphone, sonst erstes
+  const pick = devices.find((d) => d.id === chosenDevice?.id) || devices.find((d) => d.type === 'Smartphone') || devices[0];
+  chooseDevice(pick);
+}
+
+function chooseDevice(d) {
+  chosenDevice = d;
+  $('chosenDevice').textContent = `${d.name} (${d.type})`;
+}
+
+async function play() {
+  const id = $('trackId').value.trim();
+  if (!/^[A-Za-z0-9]{22}$/.test(id)) { log('Test-Track-ID ungültig.', 'bad'); return; }
+  lsSet(LS.trackId, id);
+  if (!chosenDevice) { log('Kein Gerät gewählt – erst Geräte abfragen.', 'bad'); return; }
+  const t0 = performance.now();
+  try {
+    const r = await api('PUT', '/me/player/play?device_id=' + encodeURIComponent(chosenDevice.id), { uris: ['spotify:track:' + id] });
+    const ms = Math.round(performance.now() - t0);
+    if (r.status === 204 || r.status === 202 || r.status === 200) log(`Abspielen: ${r.status} OK auf ${chosenDevice.name} (${ms} ms)`, 'ok');
+    else log(`Abspielen: ${apiError(r)} (${ms} ms)`, 'bad');
+  } catch (e) { log('Abspielen: ' + e.message, 'bad'); }
+}
+
+async function pause() {
+  try {
+    const q = chosenDevice ? '?device_id=' + encodeURIComponent(chosenDevice.id) : '';
+    const r = await api('PUT', '/me/player/pause' + q);
+    log(r.status < 300 ? `Pause: ${r.status} OK` : 'Pause: ' + apiError(r), r.status < 300 ? 'ok' : 'bad');
+  } catch (e) { log('Pause: ' + e.message, 'bad'); }
+}
+
+// ---------- Kamera ----------
+let stream = null;
+let camSession = 0;
+
+async function startCam() {
+  if (stream) { log('Kamera läuft schon.'); return; }
+  const t0 = performance.now();
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+    $('video').srcObject = stream;
+    camSession++;
+    const total = lsGet(LS.cam, 0) + 1;
+    lsSet(LS.cam, total);
+    const ms = Math.round(performance.now() - t0);
+    const standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+    const msg = `Kamera an nach ${ms} ms · Start Nr. ${camSession} in dieser Sitzung, ${total} insgesamt · ${standalone ? 'installierte Web-App' : 'Safari-Tab'}`;
+    $('camStatus').textContent = msg;
+    log(msg, 'ok');
+  } catch (e) {
+    log('Kamera: ' + e.name + ' – ' + e.message, 'bad');
+  }
+}
+function stopCam() {
+  if (!stream) return;
+  stream.getTracks().forEach((t) => t.stop());
+  stream = null;
+  $('video').srcObject = null;
+  log('Kamera gestoppt.');
+}
+
+// ---------- Jahre: Spotify und MusicBrainz ----------
+function parseTrackIds(text) {
+  const ids = [];
+  for (const line of text.split(/\r?\n/)) {
+    const s = line.trim();
+    if (!s) continue;
+    const m = s.match(/track[/:]([A-Za-z0-9]{22})/) || s.match(/^([A-Za-z0-9]{22})$/);
+    if (m && !ids.includes(m[1])) ids.push(m[1]);
+    else if (!m) log('Zeile übersprungen (kein Track): ' + s, 'bad');
+  }
+  return ids;
+}
+
+// MusicBrainz: höchstens 1 Anfrage pro Sekunde, Antworten im Browser zwischenspeichern
+let mbLast = 0;
+async function mbFetch(url) {
+  const cache = lsGet(LS.mb, {});
+  if (url in cache) return cache[url];
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const wait = mbLast + 1100 - Date.now();
+    if (wait > 0) await sleep(wait);
+    mbLast = Date.now();
+    const res = await fetch(url, { headers: { Accept: 'application/json' } });
+    if (res.status === 503) { await sleep(2000); continue; } // Ratenlimit, nochmal
+    const data = res.status === 404 ? null : res.ok ? await res.json() : undefined;
+    if (data === undefined) throw new Error('MusicBrainz ' + res.status);
+    const fresh = lsGet(LS.mb, {});
+    fresh[url] = data;
+    lsSet(LS.mb, fresh);
+    return data;
+  }
+  throw new Error('MusicBrainz überlastet (503)');
+}
+
+const yearOf = (date) => (date && /^\d{4}/.test(date) ? Number(date.slice(0, 4)) : null);
+const minYear = (dates) => {
+  const ys = dates.map(yearOf).filter((y) => y);
+  return ys.length ? Math.min(...ys) : null;
+};
+
+async function mbYearByIsrc(isrc) {
+  if (!isrc) return { year: null, note: 'keine ISRC' };
+  const data = await mbFetch(`https://musicbrainz.org/ws/2/isrc/${encodeURIComponent(isrc)}?fmt=json`);
+  const recs = data?.recordings || [];
+  if (!recs.length) return { year: null, note: 'ISRC unbekannt' };
+  return { year: minYear(recs.map((r) => r['first-release-date'])), note: `${recs.length} Aufnahme(n)` };
+}
+
+// Einfache Faustregel nur für den Test; die echte Logik kommt in Phase 3
+const EXCLUDE = /\b(live|remix|mix|karaoke|cover|instrumental|acoustic|demo|tribute|re-?recorded|in the style of)\b/i;
+function cleanTitle(t) {
+  return t.replace(/\s+-\s+.*$/, '').replace(/\s*[([][^)\]]*(remaster|version|mono|stereo|edit|mix)[^)\]]*[)\]]/gi, '').trim();
+}
+const luceneQuote = (s) => '"' + s.replace(/[\\"]/g, '\\$&') + '"';
+
+async function mbYearBySearch(title, artist) {
+  const t = cleanTitle(title);
+  const query = `recording:${luceneQuote(t)} AND artist:${luceneQuote(artist)}`;
+  const data = await mbFetch(`https://musicbrainz.org/ws/2/recording?fmt=json&limit=25&query=${encodeURIComponent(query)}`);
+  const recs = (data?.recordings || []).filter((r) =>
+    r.score >= 90 && !EXCLUDE.test(r.title) && !EXCLUDE.test(r.disambiguation || ''));
+  if (!recs.length) return { year: null, note: 'kein guter Treffer' };
+  return { year: minYear(recs.map((r) => r['first-release-date'])), note: `${recs.length} Treffer` };
+}
+
+let rows = [];
+
+async function loadYears() {
+  const ids = parseTrackIds($('trackList').value);
+  lsSet(LS.list, $('trackList').value);
+  if (!ids.length) { log('Keine Track-IDs gefunden.', 'bad'); return; }
+  rows = ids.map((id) => ({ id }));
+  renderTable();
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    $('yearStatus').textContent = `Frage ${i + 1} von ${rows.length} ab …`;
+    try {
+      const r = await api('GET', '/tracks/' + row.id);
+      if (r.status !== 200) { row.error = 'Spotify ' + apiError(r); renderTable(); continue; }
+      const t = r.data;
+      row.title = t.name;
+      row.artist = t.artists.map((a) => a.name).join(', ');
+      row.spotifyYear = yearOf(t.album?.release_date);
+      row.isrc = t.external_ids?.isrc || null;
+      renderTable();
+      try { Object.assign(row, prefix('isrc', await mbYearByIsrc(row.isrc))); } catch (e) { row.isrcNote = e.message; }
+      renderTable();
+      try { Object.assign(row, prefix('search', await mbYearBySearch(t.name, t.artists[0].name))); } catch (e) { row.searchNote = e.message; }
+      renderTable();
+    } catch (e) { row.error = e.message; renderTable(); }
+  }
+  $('yearStatus').textContent = `Fertig: ${rows.length} Tracks.`;
+}
+const prefix = (p, o) => ({ [p + 'Year']: o.year, [p + 'Note']: o.note });
+
+// Reihenfolge wie im Plan (ohne Korrekturliste): MB ISRC → MB Suche → Spotify
+const combined = (r) => r.isrcYear ?? r.searchYear ?? r.spotifyYear ?? null;
+
+function renderTable() {
+  const correct = lsGet(LS.correct, {});
+  const cell = (y, c, note) => {
+    if (y == null) return `<td class="muted">–${note ? '<br>' + escapeHtml(note) : ''}</td>`;
+    const cls = c ? (y === c ? 'ok' : 'bad') : '';
+    return `<td class="${cls}">${y}${note ? '<br><span class="muted">' + escapeHtml(note) + '</span>' : ''}</td>`;
+  };
+  let html = '<tr><th>Titel</th><th>Interpret</th><th>Spotify</th><th>ISRC</th><th>MB ISRC</th><th>MB Suche</th><th>Ergebnis</th><th>Richtig</th></tr>';
+  for (const r of rows) {
+    const c = correct[r.id] || null;
+    if (r.error) { html += `<tr><td colspan="8" class="bad">${escapeHtml(r.id)}: ${escapeHtml(r.error)}</td></tr>`; continue; }
+    html += `<tr><td>${escapeHtml(r.title ?? r.id)}</td><td>${escapeHtml(r.artist ?? '')}</td>`
+      + cell(r.spotifyYear, c) + `<td>${escapeHtml(r.isrc ?? '–')}</td>`
+      + cell(r.isrcYear, c, r.isrcNote) + cell(r.searchYear, c, r.searchNote) + cell(combined(r), c)
+      + `<td><input inputmode="numeric" maxlength="4" data-id="${r.id}" value="${c ?? ''}"></td></tr>`;
+  }
+  $('yearTable').innerHTML = html;
+  $('yearTable').querySelectorAll('input').forEach((inp) => inp.addEventListener('change', () => {
+    const all = lsGet(LS.correct, {});
+    const y = Number(inp.value);
+    if (y >= 1900 && y <= 2100) all[inp.dataset.id] = y; else delete all[inp.dataset.id];
+    lsSet(LS.correct, all);
+    renderTable();
+  }));
+  renderScore();
+}
+
+function scoreStats() {
+  const correct = lsGet(LS.correct, {});
+  const rated = rows.filter((r) => correct[r.id] && !r.error);
+  const hits = (fn) => rated.filter((r) => fn(r) === correct[r.id]).length;
+  return {
+    n: rated.length,
+    spotify: hits((r) => r.spotifyYear), isrc: hits((r) => r.isrcYear),
+    search: hits((r) => r.searchYear), combined: hits(combined),
+    isrcFound: rated.filter((r) => r.isrcYear != null).length,
+  };
+}
+function renderScore() {
+  const s = scoreStats();
+  $('score').textContent = s.n
+    ? `Bewertet: ${s.n} · richtig: Spotify ${s.spotify}, MB ISRC ${s.isrc} (gefunden ${s.isrcFound}), MB Suche ${s.search}, Ergebnis ${s.combined} (${Math.round(100 * s.combined / s.n)} %)`
+    : 'Trag in „Richtig“ das korrekte Jahr ein, dann erscheint die Trefferquote.';
+}
+
+async function copyTable() {
+  const correct = lsGet(LS.correct, {});
+  const v = (y) => (y == null ? '–' : y);
+  const lines = ['| Titel | Interpret | Spotify | MB ISRC | MB Suche | Ergebnis | Richtig |', '| --- | --- | --- | --- | --- | --- | --- |'];
+  for (const r of rows.filter((r) => !r.error)) {
+    lines.push(`| ${r.title} | ${r.artist} | ${v(r.spotifyYear)} | ${v(r.isrcYear)} | ${v(r.searchYear)} | ${v(combined(r))} | ${v(correct[r.id])} |`);
+  }
+  const s = scoreStats();
+  if (s.n) lines.push('', `Trefferquote (${s.n} bewertet): Spotify ${s.spotify}/${s.n}, MB ISRC ${s.isrc}/${s.n} (ISRC gefunden ${s.isrcFound}), MB Suche ${s.search}/${s.n}, Ergebnis ${s.combined}/${s.n}`);
+  const text = lines.join('\n');
+  try { await navigator.clipboard.writeText(text); log('Tabelle kopiert.', 'ok'); }
+  catch { $('log').prepend(Object.assign(document.createElement('pre'), { textContent: text })); log('Kopieren nicht erlaubt – Tabelle steht unten im Protokoll.'); }
+}
+
+// ---------- Start ----------
+$('redirectUri').textContent = REDIRECT_URI;
+$('clientId').value = lsGet(LS.clientId, DEFAULT_CLIENT_ID);
+$('trackId').value = lsGet(LS.trackId, DEFAULT_TRACK_ID);
+$('trackList').value = lsGet(LS.list, '');
+$('btnLogin').onclick = login;
+$('btnRefresh').onclick = refresh;
+$('btnLogout').onclick = () => { localStorage.removeItem(LS.auth); showAuth(); log('Abgemeldet.'); };
+$('btnDevices').onclick = loadDevices;
+$('btnPlay').onclick = play;
+$('btnPause').onclick = pause;
+$('btnPlayDevicesFirst').onclick = async () => { const d = await loadDevices(); if (d.length) await play(); };
+$('btnCam').onclick = startCam;
+$('btnCamStop').onclick = stopCam;
+$('btnYears').onclick = loadYears;
+$('btnCopy').onclick = copyTable;
+$('btnClearCache').onclick = () => { localStorage.removeItem(LS.mb); log('MusicBrainz-Cache geleert.'); };
+$('btnClearLog').onclick = () => { $('log').innerHTML = ''; };
+// Sichtbarkeitswechsel protokollieren – hilft beim Test „Bildschirm gesperrt / App gewechselt“
+document.addEventListener('visibilitychange', () => log('Seite ist jetzt ' + (document.visibilityState === 'visible' ? 'sichtbar' : 'im Hintergrund')));
+log(`Seite geladen (${navigator.standalone || matchMedia('(display-mode: standalone)').matches ? 'installierte Web-App' : 'Browser-Tab'}).`);
+handleRedirect().then(showAuth);
+</script>
+</body>
+</html>

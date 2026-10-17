@@ -1,0 +1,9 @@
+{
+  "name": "Hitlist Test",
+  "short_name": "HL Test",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#121212"
+}
