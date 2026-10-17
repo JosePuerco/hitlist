@@ -58,6 +58,9 @@
     <button id="btnPlayDevicesFirst">Geräte abfragen + abspielen</button>
     <button id="btnTransfer">Wiedergabe übertragen + abspielen</button>
     <button id="btnPlayNoDevice">Abspielen ohne Geräte-ID</button>
+    <button id="btnPlayAlbum">Abspielen über Album</button>
+    <button id="btnResume">Fortsetzen (ohne Song)</button>
+    <button id="btnState">Status abfragen</button>
     <p><a href="spotify:" style="color:#4ade80">Spotify-App öffnen</a></p>
   </section>
 
@@ -308,6 +311,45 @@ async function playNoDevice() {
   } catch (e) { log('Abspielen ohne ID: ' + e.message, 'bad'); }
 }
 
+// Diagnose: Song als Teil seines Albums starten statt als einzelne URI
+async function playViaAlbum() {
+  const id = testTrackId();
+  if (!chosenDevice) { log('Kein Gerät gewählt – erst Geräte abfragen.', 'bad'); return; }
+  try {
+    const t = await api('GET', '/tracks/' + id);
+    if (t.status !== 200) { log('Track laden: ' + apiError(t), 'bad'); return; }
+    const r = await api('PUT', '/me/player/play?device_id=' + encodeURIComponent(chosenDevice.id),
+      { context_uri: t.data.album.uri, offset: { uri: 'spotify:track:' + id } });
+    log(r.status < 300 ? `Abspielen über Album: ${r.status} OK` : 'Abspielen über Album: ' + apiError(r), r.status < 300 ? 'ok' : 'bad');
+  } catch (e) { log('Abspielen über Album: ' + e.message, 'bad'); }
+}
+
+// Diagnose: nur fortsetzen, was in Spotify schon geladen ist
+async function resume() {
+  try {
+    const q = chosenDevice ? '?device_id=' + encodeURIComponent(chosenDevice.id) : '';
+    const r = await api('PUT', '/me/player/play' + q);
+    log(r.status < 300 ? `Fortsetzen: ${r.status} OK` : 'Fortsetzen: ' + apiError(r), r.status < 300 ? 'ok' : 'bad');
+  } catch (e) { log('Fortsetzen: ' + e.message, 'bad'); }
+}
+
+// Diagnose: was Spotify gerade geladen hat – ohne Titel zu verraten
+async function playerState() {
+  try {
+    const r = await api('GET', '/me/player');
+    if (r.status === 204) { log('Status: nichts aktiv (204)'); return; }
+    if (r.status !== 200) { log('Status: ' + apiError(r), 'bad'); return; }
+    const p = r.data;
+    const item = p.item;
+    const same = item?.id === testTrackId();
+    log(`Status: Gerät ${p.device?.name ?? '?'} · ${p.is_playing ? 'spielt' : 'pausiert'} · `
+      + (item ? `Song geladen (${same ? 'ist der Testsong' : 'anderer Song'}, abspielbar: ${item.is_playable ?? 'k. A.'}, `
+        + `Position ${Math.round((p.progress_ms ?? 0) / 1000)} s, Länge ${item.duration_ms ? 'bekannt' : '0/unbekannt'})`
+        : 'kein Song geladen')
+      + ` · Typ ${p.currently_playing_type ?? '?'}`, item ? 'ok' : 'bad');
+  } catch (e) { log('Status: ' + e.message, 'bad'); }
+}
+
 async function pause() {
   try {
     const q = chosenDevice ? '?device_id=' + encodeURIComponent(chosenDevice.id) : '';
@@ -517,6 +559,9 @@ $('btnPause').onclick = pause;
 $('btnPlayDevicesFirst').onclick = async () => { const d = await loadDevices(); if (d.length) await play(); };
 $('btnTransfer').onclick = transferAndPlay;
 $('btnPlayNoDevice').onclick = playNoDevice;
+$('btnPlayAlbum').onclick = playViaAlbum;
+$('btnResume').onclick = resume;
+$('btnState').onclick = playerState;
 $('btnCam').onclick = startCam;
 $('btnCamStop').onclick = stopCam;
 $('btnYears').onclick = loadYears;
