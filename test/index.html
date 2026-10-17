@@ -50,7 +50,7 @@
 
   <section>
     <h2>3. Abspielen</h2>
-    <label for="trackId">Test-Track-ID (Titel wird nicht angezeigt)</label>
+    <label for="trackId">Test-Track-ID oder Spotify-Link (Titel wird nicht angezeigt)</label>
     <input id="trackId" autocomplete="off" spellcheck="false">
     <p class="muted">Gewähltes Gerät: <span id="chosenDevice">keins</span></p>
     <button class="primary" id="btnPlay">Testsong abspielen</button>
@@ -267,8 +267,15 @@ function chooseDevice(d) {
   $('chosenDevice').textContent = `${d.name} (${d.type})`;
 }
 
+// Feld nimmt nackte ID oder ganzen Link (open.spotify.com/track/… bzw. spotify:track:…)
+function testTrackId() {
+  const s = $('trackId').value.trim();
+  const m = s.match(/track[/:]([A-Za-z0-9]{22})/);
+  return m ? m[1] : s;
+}
+
 async function play() {
-  const id = $('trackId').value.trim();
+  const id = testTrackId();
   if (!/^[A-Za-z0-9]{22}$/.test(id)) { log('Test-Track-ID ungültig.', 'bad'); return; }
   lsSet(LS.trackId, id);
   if (!chosenDevice) { log('Kein Gerät gewählt – erst Geräte abfragen.', 'bad'); return; }
@@ -293,7 +300,7 @@ async function transferAndPlay() {
 
 // Alternative 2: ohne device_id – Spotify nimmt das gerade aktive Gerät
 async function playNoDevice() {
-  const id = $('trackId').value.trim();
+  const id = testTrackId();
   if (!/^[A-Za-z0-9]{22}$/.test(id)) { log('Test-Track-ID ungültig.', 'bad'); return; }
   try {
     const r = await api('PUT', '/me/player/play', { uris: ['spotify:track:' + id] });
